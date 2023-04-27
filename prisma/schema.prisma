@@ -1,0 +1,128 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model AccountBudgetLine {
+  id             Int        @id @default(autoincrement())
+  account_id     Int
+  budget_line_id Int
+  created_at     DateTime?  @db.Timestamp(0)
+  updated_at     DateTime?  @db.Timestamp(0)
+  account        Account    @relation(fields: [account_id], references: [id])
+  budget_line    BudgetLine @relation(fields: [budget_line_id], references: [id])
+
+  @@map("account_budget_line")
+}
+
+model Account {
+  id                   Int                 @id @default(autoincrement())
+  number               String              @db.VarChar(255)
+  name                 String?             @db.VarChar(255)
+  description          String?
+  created_at           DateTime?           @db.Timestamp(0)
+  updated_at           DateTime?           @db.Timestamp(0)
+  account_budget_lines AccountBudgetLine[]
+
+  @@map("accounts")
+}
+
+model BudgetLine {
+  id             Int       @id @default(autoincrement())
+  name           String    @db.VarChar(255)
+  income         Int
+  expenses       Int
+  created_at     DateTime? @db.Timestamp(0)
+  updated_at     DateTime? @db.Timestamp(0)
+  cost_centre_id Int
+  suggestion_id  Int
+  type           String    @default("internal") @db.VarChar(255)
+  valid_from     DateTime? @db.Timestamp(0)
+  valid_to       DateTime? @db.Timestamp(0)
+  parent         Int?
+
+  cost_centre          CostCentre         @relation(fields: [cost_centre_id], references: [id])
+  suggestion           Suggestion?         @relation(fields: [suggestion_id], references: [id])
+  account_budget_lines AccountBudgetLine[]
+
+  @@index([cost_centre_id])
+  @@map("budget_lines")
+}
+
+model Committee {
+  id            Int           @id @default(autoincrement())
+  name          String        @db.VarChar(255)
+  created_at    DateTime?     @db.Timestamp(0)
+  updated_at    DateTime?     @db.Timestamp(0)
+  type          String        @default("committee") @db.VarChar(255)
+  inactive      Boolean       @default(false)
+  cost_centres CostCentre[]
+
+  @@map("committees")
+}
+
+model CostCentre {
+  id             Int          @id @default(autoincrement())
+  name           String       @db.VarChar(255)
+  committee_id   Int
+  created_at     DateTime?    @db.Timestamp(0)
+  updated_at     DateTime?    @db.Timestamp(0)
+  repetitions    Int          @default(1)
+  speedledger_id String?      @db.VarChar(255)
+  budget_lines   BudgetLine[]
+  committee      Committee    @relation(fields: [committee_id], references: [id])
+
+  @@map("cost_centres")
+}
+
+model UserSuggestion {
+  id            Int       @id @default(autoincrement())
+  suggestion_id Int
+  user_id       Int
+  permission    String    @default("read") @db.VarChar(255)
+  created_at    DateTime? @db.Timestamp(0)
+  updated_at    DateTime? @db.Timestamp(0)
+
+  user       User       @relation(fields: [user_id], references: [id])
+  suggestion Suggestion @relation(fields: [suggestion_id], references: [id])
+
+  @@map("suggestion_user")
+}
+
+model Suggestion {
+  id              Int              @id @default(autoincrement())
+  name            String           @db.VarChar(255)
+  valid_from      DateTime         @db.Timestamp(0)
+  valid_to        DateTime         @db.Timestamp(0)
+  description     String?
+  created_by      Int
+  created_at      DateTime?        @db.Timestamp(0)
+  updated_at      DateTime?        @db.Timestamp(0)
+  implemented_at  DateTime?        @db.Timestamp(0)
+  implemented_by  Int?
+  public_at       DateTime?        @db.Timestamp(0)
+  budget_lines    BudgetLine[]
+  user_suggestions UserSuggestion[]
+
+  @@map("suggestions")
+}
+
+model User {
+  id               Int              @id @default(autoincrement())
+  first_name       String           @db.VarChar(255)
+  last_name        String           @db.VarChar(255)
+  ugkthid          String           @unique(map: "users_ugkthid_unique") @db.VarChar(255)
+  kth_username     String           @db.VarChar(255)
+  email            String           @db.VarChar(255)
+  remember_token   String?          @db.VarChar(100)
+  created_at       DateTime?        @db.Timestamp(0)
+  updated_at       DateTime?        @db.Timestamp(0)
+  verified         Boolean          @default(false)
+  user_suggestions UserSuggestion[]
+
+  @@map("users")
+}
