@@ -8,18 +8,6 @@ import (
 	"net/http"
 )
 
-type Committee struct {
-	db.CommitteeModel
-	CostCentres []CostCentre `json:"cost_centres"`
-}
-
-type CostCentre struct {
-	db.CostCentreModel
-	Income   int `json:"income"`
-	Expenses int `json:"expenses"`
-	Internal int `json:"internal"`
-}
-
 var client *db.PrismaClient
 
 func main() {
@@ -48,11 +36,8 @@ func getAllCommittees(w http.ResponseWriter, r *http.Request) {
 		panic(err)
 	}
 
-	var result []Committee
-
-	for _, committee := range committees {
-		var costCentres []CostCentre
-		for _, costCentre := range committee.CostCentres() {
+	for i, committee := range committees {
+		for j, costCentre := range committee.CostCentres() {
 			var income, expenses int
 			if committee.Inactive {
 				costCentre.RelationsCostCentre.BudgetLines = []db.BudgetLineModel{}
@@ -63,17 +48,13 @@ func getAllCommittees(w http.ResponseWriter, r *http.Request) {
 				expenses += budgetLine.Expenses
 			}
 
-			costCentres = append(costCentres, CostCentre{
-				CostCentreModel: costCentre,
-				Income:          income,
-				Expenses:        expenses,
-				Internal:        income - expenses})
+			committees[i].CostCentres()[j].Income = income
+			committees[i].CostCentres()[j].Expenses = expenses
+			committees[i].CostCentres()[j].Internal = income - expenses
 		}
-
-		result = append(result, Committee{CommitteeModel: committee, CostCentres: costCentres})
 	}
 
-	b, err := json.Marshal(result)
+	b, err := json.Marshal(committees)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
