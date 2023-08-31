@@ -4,11 +4,7 @@ import prisma from "../db";
 import express from "express";
 const router = express.Router();
 
-function computeResults(
-  committee: any,
-  costCentre: any
-)
-{
+function computeResults(committee: any, costCentre: any) {
   let income = 0;
   let expenses = 0;
   if (committee.inactive) {
@@ -19,7 +15,8 @@ function computeResults(
     const budgetLine = costCentre.budget_lines[k];
     income += budgetLine.income;
     expenses += budgetLine.expenses;
-    costCentre.budget_lines[k].balance = budgetLine.income - budgetLine.expenses; 
+    costCentre.budget_lines[k].balance =
+      budgetLine.income - budgetLine.expenses;
   }
 
   return {
@@ -59,19 +56,24 @@ router.get("/", async (req, res) => {
               valid_to: true,
             },
             where: {
-              valid_from: { lte: new Date() },
-              valid_to: { gt: new Date() },
-              AND: [
+              OR: [
                 {
-                  suggestion: {
-                    implemented_at: { not: null },
-                  },
+                  valid_from: { lte: new Date() },
+                  valid_to: { gt: new Date() },
+                  OR: [
+                    {
+                      suggestion: {
+                        implemented_at: { not: null },
+                      },
+                    },
+                    {
+                      NOT: {
+                        follow_ups: undefined,
+                      },
+                    },
+                  ],
                 },
-                {
-                  NOT: {
-                    follow_ups: undefined,
-                  },
-                },
+                { suggestion_id: -1 },
               ],
             },
           },
