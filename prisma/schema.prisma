@@ -47,7 +47,7 @@ model BudgetLine {
 
   cost_centre          CostCentre           @relation(fields: [cost_centre_id], references: [id])
   suggestion           Suggestion?          @relation(fields: [suggestion_id], references: [id])
-  account_budget_lines AccountBudgetLine[]
+  accounts AccountBudgetLine[]
   follow_ups           BudgetLineFollowUp[]
 
   @@index([cost_centre_id])
