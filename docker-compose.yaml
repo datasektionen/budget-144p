@@ -1,0 +1,12 @@
+version: "3.0"
+
+services:
+  server:
+    build:
+      dockerfile: Dockerfile
+      context: .
+    ports:
+      - "3000:3000"
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres@host.docker.internal:5432/budget?schema=public
+    
