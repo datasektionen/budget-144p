@@ -45,21 +45,22 @@ model BudgetLine {
   valid_to       DateTime? @db.Timestamp(0)
   parent         Int?
 
-  cost_centre          CostCentre         @relation(fields: [cost_centre_id], references: [id])
-  suggestion           Suggestion?         @relation(fields: [suggestion_id], references: [id])
+  cost_centre          CostCentre           @relation(fields: [cost_centre_id], references: [id])
+  suggestion           Suggestion?          @relation(fields: [suggestion_id], references: [id])
   account_budget_lines AccountBudgetLine[]
+  follow_ups           BudgetLineFollowUp[]
 
   @@index([cost_centre_id])
   @@map("budget_lines")
 }
 
 model Committee {
-  id            Int           @id @default(autoincrement())
-  name          String        @db.VarChar(255)
-  created_at    DateTime?     @db.Timestamp(0)
-  updated_at    DateTime?     @db.Timestamp(0)
-  type          String        @default("committee") @db.VarChar(255)
-  inactive      Boolean       @default(false)
+  id           Int          @id @default(autoincrement())
+  name         String       @db.VarChar(255)
+  created_at   DateTime?    @db.Timestamp(0)
+  updated_at   DateTime?    @db.Timestamp(0)
+  type         String       @default("committee") @db.VarChar(255)
+  inactive     Boolean      @default(false)
   cost_centres CostCentre[]
 
   @@map("committees")
@@ -94,18 +95,18 @@ model UserSuggestion {
 }
 
 model Suggestion {
-  id              Int              @id @default(autoincrement())
-  name            String           @db.VarChar(255)
-  valid_from      DateTime         @db.Timestamp(0)
-  valid_to        DateTime         @db.Timestamp(0)
-  description     String?
-  created_by      Int
-  created_at      DateTime?        @db.Timestamp(0)
-  updated_at      DateTime?        @db.Timestamp(0)
-  implemented_at  DateTime?        @db.Timestamp(0)
-  implemented_by  Int?
-  public_at       DateTime?        @db.Timestamp(0)
-  budget_lines    BudgetLine[]
+  id               Int              @id @default(autoincrement())
+  name             String           @db.VarChar(255)
+  valid_from       DateTime         @db.Timestamp(0)
+  valid_to         DateTime         @db.Timestamp(0)
+  description      String?
+  created_by       Int
+  created_at       DateTime?        @db.Timestamp(0)
+  updated_at       DateTime?        @db.Timestamp(0)
+  implemented_at   DateTime?        @db.Timestamp(0)
+  implemented_by   Int?
+  public_at        DateTime?        @db.Timestamp(0)
+  budget_lines     BudgetLine[]
   user_suggestions UserSuggestion[]
 
   @@map("suggestions")
@@ -123,6 +124,34 @@ model User {
   updated_at       DateTime?        @db.Timestamp(0)
   verified         Boolean          @default(false)
   user_suggestions UserSuggestion[]
+  follow_ups       FollowUp[]
 
   @@map("users")
+}
+
+model BudgetLineFollowUp {
+  id             Int       @id @default(autoincrement())
+  budget_line_id Int
+  follow_up_id   Int
+  booked         Int
+  created_at     DateTime? @db.Timestamp(0)
+  updated_at     DateTime? @db.Timestamp(0)
+
+  budget_line BudgetLine @relation(fields: [budget_line_id], references: [id])
+  follow_up   FollowUp   @relation(fields: [follow_up_id], references: [id])
+
+  @@map("budget_line_follow_up")
+}
+
+model FollowUp {
+  id         Int       @id @default(autoincrement())
+  name       String?   @db.VarChar(255)
+  created_by Int
+  created_at DateTime? @db.Timestamp(0)
+  updated_at DateTime? @db.Timestamp(0)
+
+  budget_line_follow_ups BudgetLineFollowUp[]
+  creator                User                 @relation(fields: [created_by], references: [id])
+
+  @@map("follow_ups")
 }

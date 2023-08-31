@@ -37,7 +37,30 @@ function computeResults(
 
 router.get("/", async (req, res) => {
   let committees = await prisma.committee.findMany({
-    include: { cost_centres: { include: { budget_lines: true } } },
+    include: {
+      cost_centres: {
+        include: {
+          budget_lines: {
+            where: {
+              valid_from: { lte: new Date() },
+              valid_to: { gt: new Date() },
+              AND: [
+                {
+                  suggestion: {
+                    implemented_at: { not: null },
+                  },
+                },
+                {
+                  NOT: {
+                    follow_ups: undefined,
+                  },
+                },
+              ],
+            },
+          },
+        },
+      },
+    },
   });
 
   for (let i = 0; i < committees.length; i++) {
