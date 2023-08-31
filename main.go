@@ -3,9 +3,10 @@ package main
 import (
 	"budgethd/db"
 	"context"
-	"encoding/json"
 	"log"
 	"net/http"
+
+	jsoniter "github.com/json-iterator/go"
 )
 
 var client *db.PrismaClient
@@ -54,7 +55,7 @@ func getAllCommittees(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	b, err := json.Marshal(committees)
+	b, err := jsoniter.Marshal(committees)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
